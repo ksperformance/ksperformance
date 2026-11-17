@@ -1050,7 +1050,7 @@ else{const t=T-R.prev;R.prev=T;R.splits.push(t);apBeep(700,.08);if(R.splits.leng
 ready()}
 /* --- Wysokość wyskoku (czujnik ruchu, metoda czasu lotu) --- */
 let apJm=Object.assign({type:'cmj',reps:5,cd:5},apLS.g('jm',{})),apMotion=null;
-const JMT=[['cmj','CMJ – z zamachem (przysiad i wyskok)'],['sj','SJ – z przysiadu, bez zamachu']];
+const JMT=[['cmj','CMJ – szybkie zejście w dół i wyskok'],['sj','SJ – przysiad ze zatrzymaniem i wyskok']];
 const jmCm=mm=>(mm/10).toFixed(1).replace('.',',')+' cm';
 function jmSet(k,v,num){if(num){v=parseFloat(String(v).replace(',','.'));if(isNaN(v)||v<0)return render()}apJm[k]=v;apLS.s('jm',apJm);render()}
 function apJumpV(){const g=apJm,key='jump_'+g.type,N=(k,v,mx)=>`<input type="number" step="1" min="0" max="${mx}" value="${v}" onchange="jmSet('${k}',this.value,1)" style="width:110px">`;
