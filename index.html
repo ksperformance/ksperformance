@@ -1101,12 +1101,16 @@ b.items.forEach(it=>{if(it.v!=='any'&&it.v!==u.type)return;ctx.raw=it.raw;const 
 if(!list.length)return;if(b.grp)list.forEach((e,i)=>{e.sup=i>0});out[b.pos].push(...list)});return out}
 
 /* ===== CONDITIONING na końcu treningu siłowego (maks. 15 min) ===== */
-const CMN={aab:'AAB (Assault Air Bike)',row:'ROW (ergometr wioślarski)',run:'RUN (bieżnia lub hala)',mix:'Mieszany (AAB + Med Ball Slam + Battle Rope)'};
+const CMN={aab:'AAB (Assault Air Bike)',row:'ROW (ergometr wioślarski)',run:'RUN (bieżnia lub hala)',mix:'Mieszany (AAB + Med Ball Slam + Battle Rope)',shuttle:'Shuttle Run (hala lub boisko)',sled:'Sled Push / Sprint',ski:'SkiErg'};
 function condE(w,D,g,u){const c=g.cond,v=w.vol,k=KK(w),ph=w.base,r=(w.i||0)+(u.ui||0),m=c.mods[r%c.mods.length],I=(x,min)=>Math.max(min||2,Math.round(x*v));
 const cap='Conditioning na zakończenie, całość maks. 15 min. ';
 if(m==='mix'){const ro=I(ph==='base'?[3,4,4][k]:ph==='dev'?[4,5,5][k]:ph==='spec'||ph==='spec2'?[5,5,6][k]:[3,4,4][k],2),t=Math.min(15,Math.round(ro*2)),mk=(n,rep,wt)=>exx(n,[stx(ro,rep,wt,'8','','60 s',n==='Assault Air Bike'?'Przerwa po całym obwodzie ok. 60 s.':'')],'');
 const a=mk('Assault Air Bike','20 s','RPE 8'),b=mk('Med Ball Slam','10','RPE 8'),d=mk('Battle Rope','20 s','RPE 8');b.sup=true;d.sup=true;a.note=cap+'Obwód: '+ro+' rund, ok. '+t+' min. Stacje bez przerwy, odpoczynek tylko po całym obwodzie (ok. 60 s).';return [a,b,d]}
-const nm=m==='aab'?'Assault Air Bike':m==='row'?'Row Ergometer':'Bieg – bieżnia / hala';let sets,note;
+if(m==='sled'){const SW=ph==='base'?['lekkie–średnie sanie',8,'15 m','45 s']:ph==='dev'?['średnie sanie',[6,7,8][k],'20 m','40 s']:ph==='spec'?['lekkie sanie',[8,9,10][k],'15 m','35 s']:ph==='spec2'?['lekkie sanie, maks. prędkość',[5,6,7][k],'15 m','60 s']:['lekkie sanie',[6,7,8][k],'15 m','40 s'],ro=I(typeof SW[1]==='number'?SW[1]:8,4);
+return [exx(ph==='spec2'||ph==='spec'?'Sled Sprint':'Sled Push',[stx(ro,SW[2],SW[0],ph==='spec2'?'9–10':'8','',SW[3])],cap+ro+' odcinków po '+SW[2]+', całość ok. '+Math.max(6,Math.round(ro*(parseInt(SW[3])+15)/60))+' min. Obciążenie tak lekkie, by technika biegu się nie zmieniła.')]}
+if(m==='shuttle'){const q=ph==='base'?['30 s','30 s','85% MAS',[8,9,10][k]]:ph==='dev'?['30 s','15 s','95% MAS',[10,11,12][k]]:ph==='spec'?['15 s','15 s','110% MAS',[14,16,18][k]]:ph==='spec2'?['20 s','40 s','maks.',[5,6,7][k]]:['15 s','15 s','90% MAS',[10,11,12][k]],ro=I(q[3],4);
+return [exx('Shuttle Run '+q[0].replace(' s','')+'/'+q[1].replace(' s',''),[stx(1,ro+' × '+q[0],q[2],ph==='spec2'?'9–10':'8',q[1]+' lekko','','min. 1 nawrót')],cap+ro+' × ('+q[0]+' + '+q[1]+') = ok. '+Math.max(5,Math.round(ro*(parseInt(q[0])+parseInt(q[1]))/60))+' min. Dystans liczony z Twojego MAS z korektą na nawroty.')]}
+const nm=m==='aab'?'Assault Air Bike':m==='row'?'Row Ergometer':m==='ski'?'SkiErg':'Bieg – bieżnia / hala';let sets,note;
 if(ph==='base'){const mn=I([10,11,12][k],6);sets=[stx(1,mn+' min',m==='run'?'65% MAS':'RPE 5–6','5–6','','','')];note='Ciągły wysiłek tlenowy, rozmowa możliwa. Całość ok. '+mn+' min.'}
 else if(ph==='dev'){const ro=I([5,6,7][k],3);sets=[stx(ro,'1 min',m==='run'?'105% MAS':'RPE 8','8','1 min lekko','','')];note=ro+' × (1 min mocno + 1 min lekko) = ok. '+ro*2+' min.'}
 else if(ph==='spec'){const ro=I([8,9,10][k],4);sets=[stx(ro,'20 s',m==='run'?'120% MAS':'RPE 9','9','40 s lekko','','')];note=ro+' × (20 s ciężko + 40 s lekko) = ok. '+ro+' min.'}
