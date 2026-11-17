@@ -360,7 +360,7 @@ function load(){try{const r=localStorage.getItem(KEY);if(r)return JSON.parse(r)}
 
 /* ===== BACKEND: Firebase (gdy FB_CONFIG uzupełniony) albo tryb demo w tej przeglądarce ===== */
 const FBV='10.12.2';
-let BE=null,beErr='',authU=null,role=null,athDoc=null,pendingJoin=null,unsub=[],dbNote='',beReady=false;
+let BE=null,beBusy='',beErr='',authU=null,role=null,athDoc=null,pendingJoin=null,unsub=[],dbNote='',beReady=false;
 async function fbBackend(){const b='https://www.gstatic.com/firebasejs/'+FBV+'/',A=await import(b+'firebase-app.js'),U=await import(b+'firebase-auth.js'),F=await import(b+'firebase-firestore.js');
 const app=A.initializeApp(FB_CONFIG),auth=U.getAuth(app),db=F.getFirestore(app);
 return{demo:false,onAuth:cb=>U.onAuthStateChanged(auth,u=>cb(u?{uid:u.uid,email:u.email}:null)),signIn:(e,p)=>U.signInWithEmailAndPassword(auth,e,p),signUp:async(e,p)=>{const c=await U.createUserWithEmailAndPassword(auth,e,p);return{uid:c.user.uid,email:c.user.email}},signOut:()=>U.signOut(auth),reset:e=>U.sendPasswordResetEmail(auth,e),
@@ -380,11 +380,11 @@ const AERR={'auth/invalid-credential':'Niepoprawny e-mail lub hasło.','auth/wro
 const aerr=e=>AERR[e&&e.code]||('Wystąpił błąd: '+(e&&(e.code||e.message)||''));
 function stopSubs(){unsub.forEach(f=>{try{f()}catch(e){}});unsub=[]}
 async function beStart(){try{BE=FB_CONFIG?await fbBackend():demoBackend()}catch(e){console.error(e);beErr='Nie mogę połączyć się z serwerem. Sprawdź internet i odśwież stronę.';beReady=true;return render(true)}
-BE.onAuth(async u=>{authU=u;beErr='';stopSubs();role=null;athDoc=null;sess=null;pvMode=false;if(!u){beReady=true;return render(true)}
+BE.onAuth(async u=>{authU=u;beErr='';stopSubs();role=null;athDoc=null;sess=null;pvMode=false;if(!u){beReady=true;return render(true)}beBusy='Łączenie z bazą danych…';render(true);const tmo=setTimeout(()=>{if(beBusy){beBusy='';beErr='Baza danych nie odpowiada od 15 sekund. Sprawdź internet albo ustawienia Firestore.';render(true)}},15000);
 try{if(pendingJoin)await pendingJoin;const ow=await BE.get('config/owner');
 if(ow&&ow.uid===u.uid){role='t';sess={r:'t'};startTrainer()}
 else{const a=await BE.get('athletes/'+u.uid);if(a){role='c';athDoc=a;sess={r:'c',id:a.mid};startAthlete()}else role=ow?'join':'setup'}}catch(e){console.error(e);beErr=aerr(e)}
-beReady=true;render(true)})}
+clearTimeout(tmo);beBusy='';beReady=true;render(true)})}
 /* trener */
 let lastPriv='',saveT=0,codesNow={},privReady=false,athQ=null;
 function ingestAth(L){let ch=false;L.forEach(({id,data:x})=>{const mid=x.mid||id;remoteDone[mid]=x.marks||{};remoteLogs[mid]=x.logs||{};remoteRd[mid]=x.rd||{};remoteRes[mid]=x.res||[];
@@ -444,7 +444,7 @@ function lgKey(e){if(e.key==='Enter')lgGo()}
 function lgSet(m){lgMode=m;lgErr='';lgSub='in';render(true)}
 const pwIn=(ph)=>`<span class="pwr"><input id="lgp" type="password" autocomplete="${ph}" onkeydown="lgKey(event)"><button type="button" class="pwt" onclick="pwTog()" aria-label="Pokaż hasło">Pokaż</button></span>`;
 function loginV(){const card=b=>`<div class="lg"><img class="lglogo" src="${LOGO}" alt="KS Human Performance"><div class="lgcard">${b}${lgErr?`<div class="msg" style="margin-top:12px">${esc(lgErr)}</div>`:''}${BE&&BE.demo?'<p class="mu" style="font-size:12px;text-align:center;margin:12px 0 0">Tryb demonstracyjny – dane zapisują się tylko w tej przeglądarce.</p>':''}</div></div>`;
-if(!beReady)return card('<p class="mu" style="text-align:center;margin:8px 0">Łączenie…</p>');
+if(!beReady||beBusy)return card(`<p class="mu" style="text-align:center;margin:8px 0">${esc(beBusy||'Łączenie…')}</p>`);
 if(beErr&&!BE)return card(`<p>${esc(beErr)}</p>`);
 if(authU&&!role)return card(`<h2 style="margin-top:0">Nie udało się wczytać danych</h2><p class="mu">Zalogowano jako <b>${esc(authU.email)}</b>, ale aplikacja nie mogła połączyć się z bazą.</p><div class="msg">${esc(beErr||'Nieznany błąd.')}</div><p><button class="pr" style="width:100%" onclick="location.reload()">Spróbuj ponownie</button></p><p style="text-align:center;margin:0"><button class="s" onclick="logout()">Wyloguj</button></p>`);
 if(authU&&role==='setup')return card(`<h2 style="margin-top:0">Konto trenera</h2><p class="mu">Zalogowano jako <b>${esc(authU.email)}</b>. Panel trenera nie jest jeszcze przypisany do żadnego konta.</p><p class="mu">Po potwierdzeniu tylko to konto będzie miało dostęp do panelu trenera. Tej operacji nie da się później przenieść na inne konto z poziomu aplikacji.</p><p><button class="pr" style="width:100%" onclick="claimOwner()">Ustaw jako konto trenera</button></p><p style="text-align:center;margin:0"><button class="s" onclick="logout()">Wyloguj</button></p>`);
@@ -454,7 +454,7 @@ const tabs=`<div class="seg" style="margin-bottom:16px"><button class="${lgMode=
 if(lgMode==='c'&&lgSub==='up')return card(tabs+`<h2 style="margin:0 0 6px">Nowe konto</h2><label>Imię i nazwisko<input id="lgn" autocomplete="name"></label><label style="margin-top:10px">E-mail<input id="lge" type="email" autocomplete="email"></label><label style="margin-top:10px">Hasło (min. 6 znaków)${pwIn('new-password')}</label><label style="margin-top:10px">Kod drużyny lub kod osobisty<input id="lgc" autocomplete="off" style="text-transform:uppercase;letter-spacing:.2em" onkeydown="lgKey(event)"></label><p class="mu" style="font-size:13px;margin:10px 0 0">Kod otrzymasz od trenerki.</p><p><button class="pr" style="width:100%" onclick="lgGo()">Załóż konto</button></p><p style="text-align:center;margin:0"><button class="s" style="color:var(--ac)" onclick="lgSub='in';lgErr='';render(true)">Mam już konto – zaloguj się</button></p>`);
 if(tsu)return card(tabs+`<h2 style="margin:0 0 6px">Konto trenera</h2><p class="mu" style="margin-top:0">Jednorazowo – przy pierwszym uruchomieniu aplikacji.</p><label>E-mail<input id="lge" type="email" autocomplete="email"></label><label style="margin-top:10px">Hasło (min. 6 znaków)${pwIn('new-password')}</label><p><button class="pr" style="width:100%" onclick="lgGo()">Załóż konto</button></p><p style="text-align:center;margin:0"><button class="s" style="color:var(--ac)" onclick="lgSub='in';lgErr='';render(true)">Mam już konto – zaloguj się</button></p>`);
 return card(tabs+`<label>E-mail<input id="lge" type="email" autocomplete="email" onkeydown="lgKey(event)"></label><label style="margin-top:10px">Hasło${pwIn('current-password')}</label><p><button class="pr" style="width:100%" onclick="lgGo()">Zaloguj</button></p><p style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;margin:0"><button class="s" style="color:var(--ac);padding-left:0" onclick="forgot()">Nie pamiętam hasła</button><button class="s" style="color:var(--ac)" onclick="lgSub='up';lgErr='';render(true)">${lgMode==='c'?'Załóż konto':'Pierwsze uruchomienie'}</button></p>`)}
-async function lgGo(){lgErr='';const e=($('lge').value||'').trim(),p=$('lgp').value;if(!e||!p){lgErr='Wpisz e-mail i hasło.';return render(true)}
+async function lgGo(){lgErr='';const e=($('lge').value||'').trim(),p=$('lgp').value;if(!e||!p){lgErr='Wpisz e-mail i hasło.';return render(true)}const bt=document.querySelector('.lgcard button.pr');if(bt){bt.disabled=true;bt.textContent='Proszę czekać…'}
 if(lgMode==='c'&&lgSub==='up'){const n=($('lgn').value||'').trim(),c=($('lgc').value||'').trim().toUpperCase().replace(/\s/g,'');if(!n){lgErr='Wpisz imię i nazwisko.';return render(true)}if(!c){lgErr='Wpisz kod od trenerki.';return render(true)}
 let done,nu;pendingJoin=new Promise(r=>done=r);try{nu=await BE.signUp(e,p)}catch(x){pendingJoin=null;done();lgErr=aerr(x);return render(true)}
 try{await joinDo(c,n,nu)}catch(x){lgErr=x.message||aerr(x)}finally{const pj=done;pendingJoin=null;pj()}return}
