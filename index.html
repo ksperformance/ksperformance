@@ -942,7 +942,7 @@ cs.forEach(c=>{const p=c.p;if(p==='A'){mark(c.w,{ph:'comp',vol:.35,rank:9});mark
 else if(p==='B'){mark(c.w,{ph:'comp',vol:.5,rank:5});mark(c.w-1,{ph:'pre',vol:.8,rank:4});mark(c.w+1,{ph:'regen',vol:.8,rank:3})}
 else mark(c.w,{ph:'comp',vol:.8,rank:2})});
 let cnt=0,prev='';W.forEach(w=>{const f=fix[w.i];if(f){w.ph=f.ph;w.vol=f.vol;w.step=f.ph==='regen'?'D':'T';if(f.rank>2){cnt=0;prev=''}return}
-const post=w.i>tgt&&aw.length,frac=tgt>0?w.i/tgt:1,ph=post?'maint':frac<.3?'base':frac<.55?'dev':frac<.78?'spec':'spec2';if(ph!==prev){cnt=0;prev=ph;w.newPh=w.i>0}
+const post=w.i>tgt&&aw.length,frac=tgt>0?w.i/tgt:1,ph=!aw.length?(frac<.4?'base':frac<.8?'dev':'spec'):post?'maint':frac<.3?'base':frac<.55?'dev':frac<.78?'spec':'spec2';if(ph!==prev){cnt=0;prev=ph;w.newPh=w.i>0}
 w.ph=ph;w.vol=1;w.step=cnt%4;if(w.step===3){const nx=fix[w.i+1];if(nx&&nx.ph!=='regen'||w.i+1>=nW){w.step=2}else{w.ph='deload';w.vol=.7;w.base=ph;w.step='D'}}if(w.step!==undefined&&w.step!=='D'&&post)w.step=Math.min(w.step,1);cnt++});
 W.forEach(w=>{w.f=tgt>0?Math.min(1,w.i/tgt):1;w.base=w.base||w.ph;if(w.ph==='taper'||w.ph==='pre'||w.ph==='comp'||w.ph==='regen'){w.base=w.i>tgt?'maint':'spec';if(w.ph==='regen'&&w.i<=tgt)w.base='dev'}});return W}
 /* biblioteka jednostek */
@@ -1056,28 +1056,35 @@ const PMN={auto:'Automatycznie',block:'Blokowa',linear:'Liniowa',wave:'Falowa (t
 const PMD={auto:'Aplikacja wybiera model na podstawie długości programu i startów.',block:'Bloki: akumulacja (objętość), transmutacja (siła), realizacja (moc, szczyt formy). Najlepsza przy 12+ tygodniach przed najważniejszym startem (Issurin).',linear:'Objętość stopniowo spada, a intensywność rośnie: 10 → 8 → 5 → 3 powtórzeń. Prosta i przewidywalna, dobra dla początkujących i przy 6–12 tygodniach.',wave:'Tygodnie ciężki / średni / lekki zmieniają się cyklicznie, a każdy kolejny cykl jest o 2,5% wyżej. Dobra przy częstych startach.',dup:'Dzienna falowa: w tygodniu na różnych treningach siła, objętość i moc. Przy jednym treningu tygodniowo zmienia się co tydzień. Dobra przy krótkim przygotowaniu.',conj:'Metoda sprzężona (Westside): dzień maksymalnego wysiłku (1–3RM, wariant zmieniany co 3 tyg.) i dzień dynamiczny (50–60%, maks. prędkość sztangi) oraz akcesoria.',tri:'Cal Dietz: trzy bloki po 3 tygodnie, każdy przy 80%+ 1RM i z seriami po 3 powtórzenia (jakość ważniejsza od ilości): ekscentryczny (opuszczanie 5 s, najmniej serii), izometryczny (pauza min. 3 s) i koncentryczny (maks. szybkość). Przy kilku treningach siłowych: dzień 2 to 90–97% po 1 powtórzeniu, dzień 3 objętościowy. Cykl można powtarzać z nowym 1RM.'};
 function autoPM(g){const st=mon(g.start),cs=(g.comps||[]).filter(c=>c.d).map(c=>({w:Math.floor(dsd(st,mon(c.d))/7),p:c.p||'B'})).filter(c=>c.w>=0&&c.w<g.nW),aw=cs.filter(c=>c.p==='A').map(c=>c.w),T=aw.length?Math.min(...aw):g.nW;
 if(cs.length>=3)return ['wave','częste starty (3 lub więcej)'];if(T>=12)return ['block','12 lub więcej tygodni do głównego startu'];if(T>=6)return ['linear','6–11 tygodni do głównego startu'];return ['dup','mniej niż 6 tygodni do głównego startu']}
-function genDist(g){const R=g.q.auto?autoQ(g):g.q,U=g.units.map(u=>({type:u.type,main:[],sec:[],micro:[]}));
-const idx=t=>U.map((u,i)=>u.type===t?i:-1).filter(i=>i>=0),tg=id=>{const a=idx(VENUE(id));return a.length?a:U.map((u,i)=>i)};let ec=0,sc=0;
+const QRK={loc:1,rsc:1,sti:1.5,bal:1.8,crd:1.9,srt:2,crt:2.1,sps:2.2,pwr:2.5,acc:3,maxs:3,ecc:3.3,iso:3.4,mvel:4,rels:3.8,cod:5,dec:5.1,agl:5.2,spo:5.3,smn:6,sen:6.5,ala:7,rsa:7.2,ana:7.4,lac:7.6,car:8,aer:8.5,fle:9,mob:9};
+const FLEX=['rsc','sti','sps','pwr','bal','loc','crd'];
+function genDist(g){const R=g.q.auto?autoQ(g):g.q,U=g.units.map(u=>({type:u.type,main:[],sec:[],micro:[]})),warn=[];g.warn=warn;
+const idx=t=>U.map((u,i)=>u.type===t?i:-1).filter(i=>i>=0);
+const tg=id=>{const a=idx(VENUE(id));if(a.length)return a;if(FLEX.includes(id))return U.map((u,i)=>i);warn.push('Pominięto „'+qShort(QID[id])+'”: ta zdolność wymaga treningu '+(VENUE(id)==='run'?'biegowego na zewnątrz':'siłowego')+', a w planie go nie ma.');return[]};let ec=0,sc=0;
 R.main.filter(id=>QID[id]).forEach(id=>{const t=tg(id);if(QID[id][1]==='end'&&t.length>1)U[t[ec++%t.length]].main.push(id);else t.forEach(i=>U[i].main.push(id))});
-R.sec.filter(id=>QID[id]).forEach(id=>{const t=tg(id);U[t[sc++%t.length]].sec.push(id)});
+R.sec.filter(id=>QID[id]).forEach(id=>{const t=tg(id);if(t.length)U[t[sc++%t.length]].sec.push(id)});
 R.micro.filter(id=>QID[id]).forEach(id=>tg(id).forEach(i=>U[i].micro.push(id)));
+U.forEach((u,i)=>{const cap=u.type==='gym'?4:3,rk=id=>QRK[id]||5;if(u.main.length>cap){warn.push('Trening '+(i+1)+': za dużo zdolności głównych ('+u.main.length+'), zostawiono '+cap+'. Pominięto: '+u.main.slice(cap).map(x=>qShort(QID[x])).join(', ')+'.');u.main=u.main.slice(0,cap)}
+if(u.main.length+u.sec.length>cap){const keep=cap-u.main.length;if(u.sec.length>keep){warn.push('Trening '+(i+1)+': limit '+cap+' zdolności na jednostkę, pominięto drugorzędne: '+u.sec.slice(Math.max(0,keep)).map(x=>qShort(QID[x])).join(', ')+'.');u.sec=u.sec.slice(0,Math.max(0,keep))}}
+if(u.micro.length>2){warn.push('Trening '+(i+1)+': maks. 2 wstawki, pominięto: '+u.micro.slice(2).map(x=>qShort(QID[x])).join(', ')+'.');u.micro=u.micro.slice(0,2)}});
 U.forEach((u,i)=>{const same=U.filter(x=>x.type===u.type);u.ui=same.indexOf(u);u.nu=same.length;u.i=i});return U}
 function accE(w,D,u){const v=w.vol,s=w.base==='maint'?2:intR(3,v),o=(w.i||0)+u.ui,pick=a=>a[o%a.length];
 const G1=[['Hip Thrust',10,''],['Single-Leg RDL','8 / nogę',''],['Nordic Hamstring Curl',5,'masa ciała'],['Calf Raise',12,'']],G2=[['Pull-Up',8,'masa ciała'],['Inverted Row',10,'masa ciała'],['Face Pull',15,''],['Band Pull-Apart',15,'']],G3=[['Pallof Press','10 / stronę',''],['Dead Bug','8 / stronę','masa ciała'],['Side Plank','30 s / stronę','masa ciała'],['Suitcase Carry','20 m / stronę','']];
-return [pick(G1),pick(G2),pick(G3)].map(([n,r,wt],i)=>exx(n,[stx(s,r,wt,'7','','60–90 s')],i===0?'Akcesoria dobrane automatycznie do zdolności głównych, z rotacją. Metoda powtórzeń (repeated effort), bez dochodzenia do porażki.':''))}
-function genDay(w,D,g,di,UU){const u=UU[di],mm=u.main.length+u.sec.length,vf=mm<=1?1:mm===2?.9:mm===3?.8:mm===4?.7:.6,par=(w.i+di)%2,ex=[],names=[];
-const mk=(vol,micro)=>Object.assign({},w,{vol:w.vol*vol,par,micro,ui:u.ui,nu:u.nu});
-const byCat=ids=>QORD.flatMap(c=>QL.filter(q=>q[1]===c&&ids.includes(q[0])));
-byCat(u.micro).forEach(q=>{const e=q[3](mk(.5,true),D).slice(0,2);if(e[0])e[0].note='Mikrodawka. '+(e[0].note||'');ex.push(...e)});
-const all=[].concat(byCat(u.main).map(q=>[q,vf]),byCat(u.sec).map(q=>[q,vf*.75]));QORD.forEach(c=>all.filter(([q])=>q[1]===c).forEach(([q,f])=>{const e=q[3](mk(f,false),D);if(u.sec.includes(q[0])&&e[0])e[0].note='Drugorzędna. '+(e[0].note||'');ex.push(...e);names.push(qShort(q))}));
-if(g.acc&&u.type==='gym'&&!['comp'].includes(w.ph)){const have=new Set(ex.map(x=>x.n));ex.push(...accE(Object.assign({},w,{vol:w.vol}),D,u).filter(x=>!have.has(x.n)))}
+return [pick(G1),pick(G2),...((w.i||0)%2?[pick(G3)]:[])].map(([n,r,wt],i)=>exx(n,[stx(s,r,wt,'7','','60–90 s')],i===0?'Akcesoria dobrane automatycznie do zdolności głównych, z rotacją. Metoda powtórzeń (repeated effort), bez dochodzenia do porażki.':''))}
+function genDay(w,D,g,di,UU){const u=UU[di],gym=u.type==='gym',B=gym?7:6,mm=u.main.length+u.sec.length,vf=mm<=1?1:mm===2?.9:mm===3?.8:.7,par=(w.i+di)%2,ex=[],names=[];
+const mk=(vol,micro)=>Object.assign({},w,{vol:w.vol*vol,par,micro,ui:u.ui,nu:u.nu}),rk=id=>QRK[id]||5;
+u.micro.slice().sort((a,b)=>rk(a)-rk(b)).forEach(id=>{const q=QID[id],e=q[3](mk(.5,true),D).slice(0,1);if(e[0]&&!ex.some(x=>x.n===e[0].n)){e[0].note='Mikrodawka. '+(e[0].note||'');ex.push(...e)}});
+const accN=g.acc&&gym&&w.ph!=='comp'?2:0,R=Math.max(2,B-ex.length-accN),items=[].concat(u.main.map(id=>({id,wt:1,sec:false})),u.sec.map(id=>({id,wt:.5,sec:true}))).sort((a,b)=>rk(a.id)-rk(b.id)),sw=items.reduce((x,i)=>x+i.wt,0)||1;
+items.forEach(i=>{i.n=Math.max(1,Math.min(3,Math.round(R*i.wt/sw)))});let tot=items.reduce((x,i)=>x+i.n,0);while(tot>R){const m=items.filter(i=>i.n>1).sort((a,b)=>b.n-a.n||a.wt-b.wt)[0];if(!m)break;m.n--;tot--}
+items.forEach(i=>{const q=QID[i.id],e=q[3](mk(i.sec?vf*.75:vf,false),D).slice(0,i.n);if(i.sec&&e[0])e[0].note='Drugorzędna. '+(e[0].note||'');ex.push(...e);names.push(qShort(q))});
+if(accN){const have=new Set(ex.map(x=>x.n));ex.push(...accE(Object.assign({},w),D,u).filter(x=>!have.has(x.n)).slice(0,accN))}
 const nm=(names.length?names.slice(0,3).join(', ')+(names.length>3?' i inne':''):'mikrodawka')+(names.length&&u.micro.length?' + mikrodawka':'');
-return {n:(u.type==='gym'?'Siłownia':'Bieg')+(UU.filter(x=>x.type===u.type).length>1?' '+(u.ui+1):'')+' – '+nm,type:u.type,rr:ex.some(x=>x.sets.some(s=>s.rr)),ex}}
+return {n:(gym?'Siłownia':'Bieg')+(UU.filter(x=>x.type===u.type).length>1?' '+(u.ui+1):'')+' – '+nm,type:u.type,rr:ex.some(x=>x.sets.some(s=>s.rr)),ex}}
 function genRun(){const g=genInit();if(!g.gid){msg='Najpierw dodaj drużynę w zakładce Zespół.';return render()}
 const D=DISC[g.disc]||DISC['Inna dyscyplina'],W=genWeeks(g),UU=genDist(g),pm=g.pm==='auto'?autoPM(g)[0]:g.pm;g.pmUsed=pm;
 W.forEach(w=>{w.pm=pm;if(w.ph==='comp'&&w.comp.some(c=>c.p==='A'||c.p==='B'))w.units=[unitAct()];else w.units=UU.map((m,di)=>genDay(w,D,g,di,UU));
 w.units.forEach(u=>{const f=[];if(g.wu)f.push(u.type==='gym'?exx('Rozgrzewka – mobilizacja i aktywacja',[stx(1,'8–10 min','','3–4')],'Rolowanie, mobilizacja bioder i klatki piersiowej, aktywacja pośladków i łopatek, serie wchodzące.'):exx('Rozgrzewka – ABC biegu',[stx(1,'10 min','','4–5')],'A-Skip, B-Skip, wymachy, krótkie przyspieszenia 3 × 20 m z narastaniem tempa.'));u.ex=f.concat(u.ex);if(g.cd)u.ex.push(exx('Schłodzenie',[stx(1,'5–8 min','','2')],'Spokojny trucht lub marsz, następnie rozciąganie.'));if(g.wish.trim())u.ex.push(exx('Dodatkowo',[stx('','','','')],g.wish.trim()))})});
-g.out=W;g.sel={};W.forEach(w=>g.sel[w.i]=true);g.op={0:true};g.step=6;msg='Wygenerowano plan na '+W.length+' tyg. (periodyzacja: '+PMN[pm]+'). Sprawdź i popraw jednostki, a potem dodaj je do planu.';window.scrollTo(0,0);render()}
+g.out=W;g.sel={};W.forEach(w=>g.sel[w.i]=true);g.op={0:true};g.step=6;msg='Wygenerowano plan na '+W.length+' tyg. (periodyzacja: '+PMN[pm]+'). Sprawdź i popraw jednostki, a potem dodaj je do planu.'+((g.warn||[]).length?' Uwaga: '+g.warn.join(' '):'');window.scrollTo(0,0);render()}
 /* edycja podglądu */
 function genSet(wi,ui,j,si,f,v){const x=S.gen.out[wi].units[ui].ex[j];if(f==='n'||f==='note')x[f]=v;else x.sets[si][f]=v;save()}
 function genDelU(wi,ui){S.gen.out[wi].units.splice(ui,1);render()}
