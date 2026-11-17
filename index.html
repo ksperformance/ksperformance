@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="pl"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>KS Human Performance · Zespół</title><meta name="theme-color" content="#0d0d0e"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="KS Team"><link rel="apple-touch-icon" href="icon.png"><link rel="icon" href="icon.png">
+<title>KS Human Performance · Zespół</title><meta name="theme-color" content="#0d0d0e"><link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="icon-192.png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="KS Team"><link rel="apple-touch-icon" href="icon.png"><link rel="icon" href="icon.png">
 <link href="https://fonts.googleapis.com/css2?family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
 :root{--bg:#eaf0f4;--cd:#fff;--tx:#17232c;--mu:#62717d;--ac:#1d5f8a;--a2:#dcebf5;--bd:#cfdae2;--p:#2b7bb9;--c:#d9962b;--f:#c4586f;--ok:#2e8b57;--wr:#b4472f;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);color-scheme:light}
@@ -1391,6 +1391,8 @@ $('app').innerHTML='<nav>'+N.map(n=>`<button class="${top===n[0]?'on':''}" oncli
 +({team:teamV,member:memberV,plans:plansV,gen:genV,lib:libV,results:resV,ready:readyV,xed:xedV,progress:progV,calendar:calV,stats:statV,access:accessV}[view]||teamV)()}
 (function(){const h=document.querySelector('.w>h1');if(h)h.innerHTML='<img class="hlogo" src="'+LOGO+'" alt="KS Human Performance">'})();
 render(true);beStart();
+
+try{if('serviceWorker' in navigator&&location.protocol==='https:')navigator.serviceWorker.register('sw.js').catch(()=>{})}catch(e){}
 
 </script>
 </body></html>
