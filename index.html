@@ -967,7 +967,7 @@ function unitRST(w,D){const ph=w.base,k=KK(w),v=w.vol,se=intR([2,2,3][k],v),rp=[
 const rst=m=>Math.round(m/10)+' min';
 function unitS1(w,D){const ph=w.base,k=KK(w),v=w.vol,I=x=>intR(x,v);
 if(ph==='base')return {n:'Przyspieszenie',ex:[exx('Acceleration Sprint 10 m',[stx(I([6,7,8][k]),'10 m','95–100% Vmax','9','',rst(10))],SPW+' Od krótkich odcinków i większej liczby powtórzeń.')]};
-if(ph==='dev')return {n:'Przyspieszenie',ex:[exx('Sprint 20 m',[stx(I([4,5,6][k]),'20 m','95–100% Vmax','9','',rst(20))],SPW+' Dystans rośnie, liczba powtórzeń spada.'),exx('Sled Push',[stx(I([2,3,3][k]),'10 m','lekkie sanie','8','',rst(20))],'Obciążenie na tyle lekkie, by technika przyspieszenia się nie zmieniła.')]};
+if(ph==='dev')return {n:'Przyspieszenie',ex:[exx('Sprint 20 m',[stx(I([4,5,6][k]),'20 m','95–100% Vmax','9','',rst(20))],SPW+' Dystans rośnie, liczba powtórzeń spada.'),exx('Falling Start Sprint',[stx(I([2,3,3][k]),'10 m','95–100% Vmax','9','',rst(10))],'Start z pochylenia całego ciała do przodu (bez sprzętu), dopiero po upadku wyjście ze sprintu.')]};
 if(ph==='spec'||ph==='spec2')return {n:'Przyspieszenie',ex:[exx('Sprint 30 m',[stx(I([3,4,5][k]),'30 m','95–100% Vmax','9','',rst(30))],SPW+' Starty z reakcji na sygnał. Dystans dostosuj do dyscypliny ('+D.sp+').'),exx('Pro Agility (5-10-5)',[stx(I([2,3,3][k]),'1','100%','9','','2 min')],'Pełna przerwa między powtórzeniami.')]};
 return {n:'Przyspieszenie',ex:[exx('Sprint 20 m',[stx(I([3,3,4][Math.min(k,2)]),'20 m','95–100% Vmax','9','',rst(20))],SPW)]}}
 function unitS2(w,D){const ph=w.base,k=KK(w),v=w.vol,I=x=>intR(x,v);
@@ -977,6 +977,8 @@ if(ph==='spec'||ph==='spec2')return {n:'Prędkość maksymalna',ex:[exx('Flying 
 return {n:'Prędkość maksymalna',ex:[exx('Flying Sprint 20 m',[stx(I(3),'20 m (rozbieg 20–30 m)','95–100% Vmax','9','',rst(20))],SPW)]}}
 function unitP(w,D){const ph=w.base,k=KK(w),v=w.vol,I=x=>intR(x,v);
 const N='Jakość, nie ilość – kończ serię, gdy spada sprężystość. Skoki wykonuj przed sprintem, przy świeżych nogach. Orientacyjnie 40–60 kontaktów na sesję (mikrodawka 20–30), poniżej 120 na tydzień; przerwa 1–3 min, ok. 72 h do kolejnej sesji skoków.';
+if(w.out&&ph==='base')return {n:'Plyo',ex:[exx('Pogo Jumps',[stx(I([2,3,3][k]),'10','','6','','30–60 s')],N),exx('Line Hops (skoki przez linię)',[stx(I([2,3,3][k]),'8 / stronę','','7','','1 min')],'Krótki kontakt z podłożem, kolana prosto.'),exx('Skip Power (A-skip z wybiciem)',[stx(I([2,3,3][k]),'15 m','','7','','1 min')],'Wysokie kolano, energiczne odbicie.')]};
+if(w.out&&ph==='dev')return {n:'Plyo',ex:[exx('Broad Jump',[stx(I([3,3,4][k]),'3','','8','','2 min')],N+' Lądowanie w pozycji atletycznej.'),exx('Lateral Bound',[stx(I([3,3,4][k]),'4 / stronę','','8','','1–2 min')],'Stabilne lądowanie jednonóż.'),exx('Single-Leg Hop',[stx(I([2,3,3][k]),'4 / nogę','','8','','1–2 min')],'Do przodu, lądowanie kontrolowane.')]};
 if(ph==='base')return {n:'Plyo',ex:[exx('Pogo Jumps',[stx(I([2,3,3][k]),'10','','6','','30–60 s')],N),exx('Hurdle Hops',[stx(I([2,3,3][k]),'5','','7','','1 min')],'Krótki kontakt z podłożem, kolana prosto.'),exx('Med Ball Slam',[stx(I([3,3,4][k]),'5','','8','','30–60 s')],'Maksymalnie szybko, pełne wyprowadzenie ruchu.')]};
 if(ph==='dev')return {n:'Plyo',ex:[exx('Box Jump',[stx(I([3,3,4][k]),'3','','8','','2–3 min')],N),exx('Broad Jump',[stx(I([3,3,4][k]),'3','','8','','2 min')],'Lądowanie w pozycji atletycznej, krok kontrolny.'),exx('Med Ball Rotational Throw',[stx(I([3,3,4][k]),'4 / stronę','','8','','1 min')],'Maksymalna prędkość wyrzutu.')]};
 if(ph==='spec'||ph==='spec2')return {n:'Plyo',ex:[exx('Bounding',[stx(I([3,3,4][k]),'20 m','','8','','2 min')],N),exx('Countermovement Jump',[stx(I([3,3,4][k]),'3','','8','','2 min')],'Maksymalna wysokość, pełny odpoczynek.'),exx('Lateral Bound',[stx(I([2,3,3][k]),'4 / stronę','','8','','1–2 min')],'Stabilne lądowanie jednonóż.')]};
@@ -1024,7 +1026,7 @@ return ph==='base'?[lo,mx]:ph==='dev'?[mx,lo]:[sh,mx]}],
 ['mvel','spd','Prędkość maksymalna (Max Velocity / Max Speed)',(w,D)=>unitS2(w,D).ex],
 ['smn','spd','Utrzymanie szybkości / wytrzymałość szybkościowa (Speed Maintenance / Speed Endurance)',(w)=>{const k=KK(w),v=w.vol;return [exx('Flying Sprint 20 m',[stx(intR(3,v),'20 m (rozbieg 20–30 m)','95–100% Vmax','9','',rst(20))],SPW),exx('Speed Endurance Run',[stx(intR([3,4,4][k],v),'80 m','90–95% Vmax','8–9','','4–5 min')],'Utrzymanie prędkości na dłuższym odcinku. Pełne przerwy – to nie jest praca kondycyjna.')]}],
 ['rsa','spd','Powtarzane sprinty (Repeat Sprint Ability, RSA)',(w,D)=>unitRST(w,D).ex],
-['loc','spd','Szybkość lokomocyjna (Locomotor Speed)',(w)=>{const v=w.vol;return [exx('A-Skip',[stx(intR(3,v),'20 m','','6','','powrót marszem')],'Technika biegu, szybkie i sprężyste ruchy kończyn.'),exx('B-Skip',[stx(intR(3,v),'20 m','','6','','powrót marszem')],''),exx('Wall Drill',[stx(intR(3,v),'10 s / nogę','','7','','30 s')],'Szybka wymiana nóg w stabilnej pozycji.')]}],
+['loc','spd','Szybkość lokomocyjna (Locomotor Speed)',(w)=>{const v=w.vol;return [exx('A-Skip',[stx(intR(3,v),'20 m','','6','','powrót marszem')],'Technika biegu, szybkie i sprężyste ruchy kończyn.'),exx('B-Skip',[stx(intR(3,v),'20 m','','6','','powrót marszem')],''),exx('High Knees – szybka wymiana nóg',[stx(intR(3,v),'10 m','','7','','30 s')],'Szybka wymiana nóg, wysoka postawa, bez sprzętu.')]}],
 ['srt','spd','Prosty czas reakcji (Simple Reaction Time)',(w)=>{const k=KK(w),v=w.vol;return [exx('Reaction Start',[stx(intR([4,5,6][k],v),'10 m','100%','9','','1 min')],'Start na jeden, znany sygnał (dźwięk lub ruch partnera).')]}],
 ['crt','spd','Złożony czas reakcji (Complex Reaction Time)',(w)=>{const k=KK(w),v=w.vol;return [exx('Reaction Start – wybór kierunku',[stx(intR([4,5,6][k],v),'10 m','100%','9','','1 min')],'Sygnał wskazuje kierunek lub zadanie (kolor, liczba, ruch partnera): reakcja z wyborem.')]}],
 ['cod','agi','Zmiana kierunku (Change of Direction, COD)',(w)=>{const k=KK(w),v=w.vol;return [exx('Pro Agility (5-10-5)',[stx(intR([3,4,4][k],v),'1','100%','9','','2 min')],'Zaplanowana trasa, pełna intencja.'),exx('T-Test',[stx(intR([2,3,3][k],v),'1','100%','9','','2 min')],'')]}],
@@ -1048,17 +1050,17 @@ const VENUE=id=>{const q=QID[id];return q&&(q[1]==='spd'||q[1]==='end'||(q[1]===
 
 /* ===== UWAGI TRENERKI: parser życzeń -> bloki ćwiczeń ===== */
 const WL=[
-['sledpull',/sled\s*pull|sled\s*drag|ci[aą]gni[eę]cie sa[nń]|sanie.*ci[aą]g/i,'run'],
-['sled',/sled|sanie|sa[nń]/i,'run'],
+['sledpull',/sled\s*pull|sled\s*drag|ci[aą]gni[eę]cie sa[nń]|sanie.*ci[aą]g/i,'gym'],
+['sled',/sled|sanie|sa[nń]/i,'gym'],
 ['iso',/izometri|\biso\b|isometr|\bhold\b/i,'any'],
-['throw',/rzut|throw|med\.?\s*ball|pi[lł]k[aąi] lekarsk|slam/i,'any'],
+['throw',/rzut|throw|med\.?\s*ball|pi[lł]k[aąi] lekarsk|slam/i,'gym'],
 ['jump',/skok|skoki|jump|plyo|pliometr|\bhop|bounding/i,'any'],
 ['sprint',/sprint|przyspiesz|start z/i,'run'],
 ['core',/\bcore\b|brzuch|tu[lł][oó]w|plank|pallof|dead\s*bug/i,'any'],
 ['nordic',/nordic/i,'any'],
 ['pull',/podci[aą]g|pull-?up|chin|wios|\brow\b|face\s*pull/i,'gym'],
 ['hip',/hip\s*thrust|po[sś]ladk|glute/i,'gym'],
-['carry',/carry|farmer|spacer rolnika/i,'any'],
+['carry',/carry|farmer|spacer rolnika/i,'gym'],
 ['lunge',/wykrok|lunge|split\s*squat|bu[lł]garsk/i,'gym'],
 ['squat',/przysiad|squat/i,'gym'],
 ['dl',/martw|deadlift|rdl/i,'gym'],
@@ -1070,7 +1072,7 @@ function wishEx(k,w,D,ctx){const v=w.vol,n=intR(3,v),r=(w.i||0)+(ctx&&ctx.ui||0)
 switch(k){
 case 'iso':return exx(ctx.gym?'Izometria pokonująca – Mid-Thigh Pull':'Isometric Split Squat Hold',[stx(n,ctx.gym?'3–5 s':'20–30 s','maks.','8','','60–90 s')],'Izometria pokonująca (nieruchomy opór) lub utrzymanie pozycji, bez wstrzymywania oddechu.');
 case 'throw':return exx(pick(['Med Ball Rotational Throw','Med Ball Overhead Throw','Med Ball Chest Pass','Med Ball Slam']),[stx(n,'4–5','','8','','60–90 s')],'Maksymalna prędkość wyrzutu, lekka piłka (2–4 kg).');
-case 'jump':{const u=unitP(w,D).ex;const e=JSON.parse(JSON.stringify(u[r%u.length]));e.id=uid();e.sets.forEach(x=>{x.s=String(n)});e.note='Jakość, nie ilość. '+e.note;return e}
+case 'jump':{const u=unitP(Object.assign({},w,{out:!ctx.gym}),D).ex;const e=JSON.parse(JSON.stringify(u[r%u.length]));e.id=uid();e.sets.forEach(x=>{x.s=String(n)});e.note='Jakość, nie ilość. '+e.note;return e}
 case 'sled':return exx('Sled Push',[stx(n,'10–15 m','lekkie sanie','8','','60–90 s')],'Obciążenie na tyle lekkie, by technika przyspieszenia się nie zmieniła.');
 case 'sledpull':return exx('Sled Pull / Drag',[stx(n,'15–20 m','lekkie–średnie sanie','7','','60–90 s')],'Tempo kontrolowane, tułów stabilny.');
 case 'sprint':{const e=unitS1(w,D).ex[0];e.id=uid();return e}
@@ -1092,7 +1094,7 @@ const pos=/na (pocz[aą]tku|pocz[aą]tek|start)|najpierw|zacznij/i.test(c)?'star
  grp=/triset|tr[oó]jseri|3 ćwicz/i.test(c)?'tri':/superseri|super\s*set|superset|para ćwicz/i.test(c)?'sup':/obw[oó]d|circuit/i.test(c)?'cir':'',
  venue=/siłown|gym|sala/i.test(c)?'gym':/bieg|boisk|zewn|murawa|dworze/i.test(c)?'run':'all',items=[];
 c.split(/\+|,|\s\/\s|\bi\b|\boraz\b/i).forEach(seg=>{const sg=seg.trim();if(!sg)return;const m=WL.find(x=>x[1].test(sg));if(m){items.push({k:m[0],raw:sg,v:m[2]});return}
-const rest=sg.replace(WSTOP,' ').replace(/\s+/g,' ').trim();if(rest.length>2&&!/^(na|w|z|do|po|przed|ze)$/i.test(rest))items.push({k:null,raw:rest,v:'any'})});
+const rest=sg.replace(WSTOP,' ').replace(/\s+/g,' ').trim();if(rest.length>2&&!/^(na|w|z|do|po|przed|ze)$/i.test(rest))items.push({k:null,raw:rest,v:'gym'})});
 if(items.length)out.push({pos,grp:grp||(items.length===2?'sup':items.length===3?'tri':items.length>3?'cir':''),venue,items,raw:c})});return out}
 function wishBlocks(g,w,D,u){const out={start:[],mid:[],end:[]};parseWish(g.wish).forEach(b=>{if(b.venue!=='all'&&b.venue!==u.type)return;const ctx={gym:u.type==='gym',ui:u.ui,raw:''},list=[];
 b.items.forEach(it=>{if(it.v!=='any'&&it.v!==u.type)return;ctx.raw=it.raw;const e=it.k?wishEx(it.k,w,D,ctx):exx(it.raw.charAt(0).toUpperCase()+it.raw.slice(1),[stx(intR(3,w.vol),8,'','7','','60–90 s')],'Z Twoich uwag – uzupełnij parametry.');if(e)list.push(e)});
@@ -1109,7 +1111,7 @@ const PMD={auto:'Aplikacja wybiera model na podstawie długości programu i star
 function autoPM(g){const st=mon(g.start),cs=(g.comps||[]).filter(c=>c.d).map(c=>({w:Math.floor(dsd(st,mon(c.d))/7),p:c.p||'B'})).filter(c=>c.w>=0&&c.w<g.nW),aw=cs.filter(c=>c.p==='A').map(c=>c.w),T=aw.length?Math.min(...aw):g.nW;
 if(cs.length>=3)return ['wave','częste starty (3 lub więcej)'];if(T>=12)return ['block','12 lub więcej tygodni do głównego startu'];if(T>=6)return ['linear','6–11 tygodni do głównego startu'];return ['dup','mniej niż 6 tygodni do głównego startu']}
 const QRK={loc:1,rsc:1,sti:1.5,bal:1.8,crd:1.9,srt:2,crt:2.1,sps:2.2,pwr:2.5,acc:3,maxs:3,ecc:3.3,iso:3.4,mvel:4,rels:3.8,cod:5,dec:5.1,agl:5.2,spo:5.3,smn:6,sen:6.5,ala:7,rsa:7.2,ana:7.4,lac:7.6,car:8,aer:8.5,fle:9,mob:9};
-const FLEX=['rsc','sti','sps','pwr','bal','loc','crd'];
+const FLEX=['rsc','sti','bal','loc','crd'];
 function genDist(g){const R=g.q.auto?autoQ(g):g.q,U=g.units.map(u=>({type:u.type,main:[],sec:[],micro:[]})),warn=[];g.warn=warn;
 const idx=t=>U.map((u,i)=>u.type===t?i:-1).filter(i=>i>=0);
 const tg=id=>{const a=idx(VENUE(id));if(a.length)return a;if(FLEX.includes(id))return U.map((u,i)=>i);warn.push('Pominięto „'+qShort(QID[id])+'”: ta zdolność wymaga treningu '+(VENUE(id)==='run'?'biegowego na zewnątrz':'siłowego')+', a w planie go nie ma.');return[]};let ec=0,sc=0;
@@ -1125,7 +1127,7 @@ const G1=[['Hip Thrust',10,''],['Single-Leg RDL','8 / nogę',''],['Nordic Hamstr
 return [pick(G1),pick(G2),pick(G3)].map(([n,r,wt],i)=>exx(n,[stx(s,r,wt,'7','','60–90 s')],i===0?'Akcesoria dobrane automatycznie do zdolności głównych, z rotacją. Metoda powtórzeń (repeated effort), bez dochodzenia do porażki.':''))}
 const QKIND=id=>['rels','sen','bal','sti','crd','spo','loc','fle','mob'].includes(id)?'sup':'main';
 function genDay(w,D,g,di,UU){const u=UU[di],gym=u.type==='gym',B=gym?11:8,mm=u.main.length+u.sec.length,vf=mm<=1?1:mm===2?.9:mm===3?.8:.7,par=(w.i+di)%2,names=[];
-const mk=(vol,micro)=>Object.assign({},w,{vol:w.vol*vol,par,micro,ui:u.ui,nu:u.nu}),rk=id=>QRK[id]||5,WB=wishBlocks(g,w,D,u),nW=WB.start.length+WB.mid.length+WB.end.length;
+const mk=(vol,micro)=>Object.assign({},w,{vol:w.vol*vol,par,micro,ui:u.ui,nu:u.nu,out:!gym}),rk=id=>QRK[id]||5,WB=wishBlocks(g,w,D,u),nW=WB.start.length+WB.mid.length+WB.end.length;
 const ent=[];const add=(e,kind)=>e.forEach(x=>ent.push({x,kind}));
 u.micro.slice().sort((a,b)=>rk(a)-rk(b)).forEach(id=>{const q=QID[id],e=q[3](mk(.5,true),D).slice(0,1);if(e[0]&&![...ent].some(y=>y.x.n===e[0].n)){e[0].note='Mikrodawka. '+(e[0].note||'');add(e,'micro')}});
 const nMicro=ent.length,accN=g.acc&&gym&&w.ph!=='comp'?3:0,R=Math.max(2,B-nMicro-accN-nW),items=[].concat(u.main.map(id=>({id,wt:1,sec:false})),u.sec.map(id=>({id,wt:.5,sec:true}))).sort((a,b)=>rk(a.id)-rk(b.id)),sw=items.reduce((x,i)=>x+i.wt,0)||1;
