@@ -679,7 +679,7 @@ function testMigrate(){if(S.unitV>=1||athDoc||(sess&&sess.r==='c'))return;S.test
 const testCats=()=>{const c=[...new Set(S.tests.map(t=>t.c))];return CATORD.filter(x=>c.includes(x)).concat(c.filter(x=>!CATORD.includes(x)))};
 const tst=id=>S.tests.find(t=>t.id===id);
 const tG=t=>{const m=/^(.+) \((kcal|cal|m|km)\)$/.exec(t.n);return m?m[1]:null};
-const tSib=t=>{const g=tG(t);return g?S.tests.filter(x=>tG(x)===g&&x.c===t.c):[t]};
+const tSib=t=>{const g=tG(t);return g?S.tests.filter(x=>tG(x)===g&&x.c===t.c).sort((a,b)=>(a.u==='m'?0:1)-(b.u==='m'?0:1)):[t]};
 const tName=t=>tSib(t).length>1?tG(t):t.n;
 const tRep=t=>tSib(t)[0];
 const listT=c=>S.tests.filter(t=>t.c===c&&tRep(t)===t);
