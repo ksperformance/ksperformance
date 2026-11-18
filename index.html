@@ -371,7 +371,7 @@ function load(){try{const r=localStorage.getItem(KEY);if(r)return JSON.parse(r)}
 const FBV='10.12.2';
 let BE=null,beBusy='',beErr='',authU=null,role=null,athDoc=null,pendingJoin=null,unsub=[],dbNote='',beReady=false;
 async function fbBackend(){const b='https://www.gstatic.com/firebasejs/'+FBV+'/',A=await import(b+'firebase-app.js'),U=await import(b+'firebase-auth.js'),F=await import(b+'firebase-firestore.js');
-const app=A.initializeApp(FB_CONFIG),auth=U.getAuth(app),db=F.getFirestore(app);
+const app=A.initializeApp(FB_CONFIG),auth=U.getAuth(app),db=(()=>{try{return F.initializeFirestore(app,{experimentalAutoDetectLongPolling:true})}catch(e){return F.getFirestore(app)}})();
 return{demo:false,onAuth:cb=>U.onAuthStateChanged(auth,u=>cb(u?{uid:u.uid,email:u.email}:null)),signIn:(e,p)=>U.signInWithEmailAndPassword(auth,e,p),signUp:async(e,p)=>{const c=await U.createUserWithEmailAndPassword(auth,e,p);return{uid:c.user.uid,email:c.user.email}},signOut:()=>U.signOut(auth),reset:e=>U.sendPasswordResetEmail(auth,e),
 get:async p=>{const s=await F.getDoc(F.doc(db,p));return s.exists()?s.data():null},set:(p,d)=>F.setDoc(F.doc(db,p),d),del:p=>F.deleteDoc(F.doc(db,p)),
 sub:(p,cb,er)=>F.onSnapshot(F.doc(db,p),s=>cb(s.exists()?s.data():null),er||(e=>console.error(e))),subCol:(p,cb,er)=>F.onSnapshot(F.collection(db,p),q=>cb(q.docs.map(d=>({id:d.id,data:d.data()}))),er||(e=>console.error(e)))}}
