@@ -716,7 +716,7 @@ let tsCat='',tsTest='',tsSub='res',tsTeam='',tsWho='',rsDate='';
 function tsUn(id){tsTest=id;render()}
 function pvUn(id){pvTest=id;render()}
 function tsSetCat(c){tsCat=c;tsTest='';render()}
-function orphBox(){const ids=new Set(S.tests.map(t=>t.id));const g={};allRes().forEach(r=>{if(!ids.has(r.tid))(g[r.tid]=g[r.tid]||[]).push(r)});const K=Object.keys(g);if(!K.length)return '';
+function orphBox(){const ids=new Set(S.tests.map(t=>t.id));ids.add('ts_masa_cia_a');const g={};allRes().forEach(r=>{if(!ids.has(r.tid))(g[r.tid]=g[r.tid]||[]).push(r)});const K=Object.keys(g);if(!K.length)return '';
 return `<div class="cd" style="border:1px solid var(--gd)"><b>Wyniki bez przypisanego testu (${K.reduce((a,k)=>a+g[k].length,0)})</b><p class="mu" style="margin:4px 0 8px">Te wyniki nie zniknęły – ich test został usunięty z listy. Wskaż, do którego testu należą.</p>${K.map(k=>{const L=g[k],vs=L.map(r=>r.v),ds=L.map(r=>r.d).sort(),nm=[...new Set(L.map(r=>(S.members.find(m=>m.id===r.mid)||{}).name).filter(Boolean))];return `<div class="row" style="gap:8px;flex-wrap:wrap;align-items:center;margin:6px 0"><span style="flex:1;min-width:200px">${L.length} wyn. · ${esc(nm.slice(0,4).join(', '))}${nm.length>4?'…':''}<br><span class="mu">wartości ${Math.min(...vs)}–${Math.max(...vs)} · ${fd(ds[0])}–${fd(ds[ds.length-1])}</span></span><select id="or_${k}"><option value="">— wybierz test —</option>${S.tests.filter(t=>t.n!=='Masa ciała').map(t=>`<option value="${t.id}">${esc(t.c)} · ${esc(t.n)}</option>`).join('')}</select><button onclick="orphAs('${k}')">Przypisz</button></div>`}).join('')}</div>`}
 function orphAs(k){const v=document.getElementById('or_'+k).value;if(!v){msg='Najpierw wybierz test z listy.';return render()}const t=tst(v),n=allRes().filter(r=>r.tid===k).length;ask('Przypisać '+n+' wyników do testu „'+t.n+'”?',()=>{S.tAl=S.tAl||{};S.tAl[k]=v;save();render()})}
 function resV(){const cats=testCats();if(!cats.includes(tsCat))tsCat=cats[0]||'';const L=S.tests.filter(t=>t.c===tsCat&&t.n!=='Masa ciała');if(!L.some(t=>t.id===tsTest))tsTest=(L[0]||{}).id||'';const t=tst(tsTest);
@@ -1125,7 +1125,8 @@ return `<div class="pvexit"><span>${isC?esc(m.name):pvRO()?'Podgląd (tylko odcz
 
 /* STATYSTYKI zawodnika */
 const STR_T=[['Deadlift',2],['Back Squat',1.5],['Bench Press',1]];
-const tByN=n=>S.tests.find(t=>t.n===n);
+const BW_ID='ts_masa_cia_a',BWT={id:BW_ID,n:'Masa ciała',u:'kg',b:'max',c:'SKŁAD CIAŁA'};
+const tByN=n=>S.tests.find(t=>t.n===n)||(n==='Masa ciała'?BWT:null);
 function bwOf(mid){const t=tByN('Masa ciała');if(!t)return null;const R=myRes(mid,t.id);return R.length?R[R.length-1]:null}
 const f1=(v,n)=>(Math.round(v*Math.pow(10,n))/Math.pow(10,n)).toLocaleString('pl-PL',{minimumFractionDigits:n,maximumFractionDigits:n});
 function stW(mid){if(pvRO())return pvBlock();const t=tByN('Masa ciała');if(!t)return;const v=parseV(t,$('sw').value);if(v==null||isNaN(v)||v<25||v>250){$('swe').textContent='Wpisz masę ciała w kg (np. 62,5).';return}
