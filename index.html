@@ -1082,12 +1082,15 @@ const x=$('apx');x.textContent='Zakończ';x.style.display='';x.onclick=ev=>{ev.s
 const scr=(t,sub,col,sz)=>{b.innerHTML=`<div style="text-align:center;padding:20px;width:100%"><div style="font-size:min(${sz||22}vw,130px);font-weight:500;line-height:1.05;color:${col||'#f2efe8'}">${t}</div><div class="mu" style="margin-top:16px;font-size:18px">${sub||''}</div></div>`},cnt=()=>$('aps').textContent=R.J.length+(g.reps?' / '+g.reps:'');
 function fin(){if(R.done)return;R.done=true;apClear();const A=R.J;if(!A.length)return apEnd('Brak wyskoków',[['Wyskoki',0]],jmGo);
 const bm=Math.max(...A.map(a=>a.mm)),av=Math.round(A.reduce((p,c)=>p+c.mm,0)/A.length),rec=apBest(key,bm,false);const rows=A.map((a,i)=>['Wyskok '+(i+1),jmCm(a.mm)+' · '+Math.round(a.ms)+' ms']);rows.push(['Najlepszy',jmCm(bm)],['Średnia',jmCm(av)]);if(A.length>1)rows.push(['Spadek (ostatni vs najlepszy)',((A[A.length-1].mm/bm-1)*100).toFixed(1).replace('.',',')+' %']);return apEnd('Wynik',rows,jmGo,rec,key)}
-function hit(ms,T){const mm=Math.round(9.81*Math.pow(ms/1000,2)/8*1000);R.J.push({mm,ms});R.ph='res';R.rest=T;apBeep(900,.12);const bm=Math.max(...R.J.map(a=>a.mm));scr(jmCm(mm),Math.round(ms)+' ms w powietrzu · najlepszy '+jmCm(bm),'var(--ac)',20);cnt();apSay((mm/10).toFixed(1).replace('.',',')+' centymetra');
+function hit(ms,T,hz){const mm=Math.round(9.81*Math.pow(ms/1000,2)/8*1000);R.J.push({mm,ms});R.ph='res';R.rest=T;apBeep(900,.12);const bm=Math.max(...R.J.map(a=>a.mm));scr(jmCm(mm),Math.round(ms)+' ms w powietrzu · najlepszy '+jmCm(bm)+(hz?' · czujnik ok. '+hz+' Hz':''),'var(--ac)',20);cnt();apSay((mm/10).toFixed(1).replace('.',',')+' centymetra');
 if(g.reps&&R.J.length>=g.reps)return void apTo(fin,2200);apTo(()=>{R.ph='ready';R.peak=-1e9;scr('Skacz','kiedy jesteś gotowa/y','#f2efe8',20)},1800)}
 apMotion=ev=>{const a=ev.accelerationIncludingGravity;if(!a||a.x==null)return;R.got=true;const T=ev.timeStamp>0?ev.timeStamp:performance.now(),m=Math.hypot(a.x,a.y,a.z),p=R.prevT||T;R.prevT=T;
-if(R.ph==='ready'||R.ph==='fly'){}else return;
-if(R.ph==='ready'){if(m>14)R.peak=T;else if(m<4.5&&T-R.peak<700&&T-R.peak>0){R.ph='fly';R.t0=(p+T)/2}}
-else{if(m>12){const ms=(p+T)/2-R.t0;if(ms>=150&&ms<=1100)hit(ms,T);else{R.ph='ready';R.peak=-1e9}}else if(T-R.t0>1300){R.ph='ready';R.peak=-1e9}}};
+if(R.ph!=='ready'&&R.ph!=='fly')return;
+if(R.ph==='ready'){if(m>=9.8)R.hi=T;if(m>14)R.peak=T;else if(m<7&&T-R.peak<700&&T-R.peak>0){R.ph='fly';R.t0=((R.hi||p)+T)/2;R.n=0;R.low=0;R.cand=0;R.win=[];R.hits=0}return}
+R.n++;if(m<9.8)R.low++;
+if(!R.cand){if(m>=12){R.cand=(p+T)/2;R.win=[m];R.hits=m>10?1:0}else if(T-R.t0>1400){R.ph='ready';R.peak=-1e9}return}
+R.win.push(m);if(m>10)R.hits++;
+if(T-R.cand>=90){if(R.hits>=2||Math.max(...R.win)>=22){const ms=R.cand-R.t0,low=R.low/R.n;if(ms>=150&&ms<=1200&&low>=.6)hit(ms,T,Math.round(R.n/((R.cand-R.t0)/1000)));else{R.ph='ready';R.peak=-1e9}}else{R.cand=0}}};
 window.addEventListener('devicemotion',apMotion);
 scr('Czekam na czujnik…','',null,10);
 apTo(()=>{if(!R.got)apEnd('Brak danych z czujnika',[['Co zrobić','Otwórz aplikację na telefonie (https), zezwól na dostęp do czujników ruchu i spróbuj ponownie']],jmGo)},3000);
