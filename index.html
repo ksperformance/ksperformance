@@ -1645,6 +1645,8 @@ $('app').innerHTML='<nav>'+N.map(n=>`<button class="${top===n[0]?'on':''}" oncli
 (function(){const h=document.querySelector('.w>h1');if(h)h.innerHTML='<img class="hlogo" src="'+LOGO+'" alt="KS Human Performance – Strength &amp; Conditioning">'})();
 render(true);beStart();
 
+const BUILD='20261120192722';
+(function(){if(location.protocol!=='https:'||BUILD==='__B__')return;let busy=0;const chk=()=>{if(busy||document.hidden)return;busy=1;fetch(location.pathname+'?v='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=t.match(/const BUILD='(\d{8,})'/);const a=document.activeElement;if(m&&m[1]!==BUILD&&!(a&&/INPUT|TEXTAREA|SELECT/.test(a.tagName))&&!document.querySelector('.pm,.modal,#pm'))location.reload()}).catch(()=>{}).then(()=>{busy=0})};document.addEventListener('visibilitychange',chk);window.addEventListener('focus',chk);setInterval(chk,300000);setTimeout(chk,4000)})();
 try{if('serviceWorker' in navigator&&location.protocol==='https:')navigator.serviceWorker.register('sw.js').catch(()=>{})}catch(e){}
 
 </script>
