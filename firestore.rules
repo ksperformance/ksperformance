@@ -1,0 +1,46 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() { return request.auth != null; }
+    function ownerDoc() { return /databases/$(database)/documents/config/owner; }
+    function isTrainer() { return signedIn() && exists(ownerDoc()) && get(ownerDoc()).data.uid == request.auth.uid; }
+    function isAthlete() { return signedIn() && exists(/databases/$(database)/documents/athletes/$(request.auth.uid)); }
+
+    // Konto trenera – można je ustawić tylko raz
+    match /config/owner {
+      allow read: if signedIn();
+      allow create: if signedIn() && !exists(ownerDoc()) && request.resource.data.uid == request.auth.uid;
+      allow update, delete: if false;
+    }
+    // Pełne dane (z notatkami trenera) – tylko trener
+    match /app/private {
+      allow read, write: if isTrainer();
+    }
+    // Plany, drużyny, testy – czytają zawodnicy, zapisuje trener
+    match /app/public {
+      allow read: if isTrainer() || isAthlete();
+      allow write: if isTrainer();
+    }
+    // Podsumowanie ankiet z treningów rugby – trener i wskazana trenerka rugby (uid w polu rc dokumentu app/public)
+    match /app/rugby {
+      allow read: if isTrainer() || (signedIn() && get(/databases/$(database)/documents/app/public).data.get('rc', []).hasAny([request.auth.uid]));
+      allow write: if isTrainer();
+    }
+    // Kody drużyn i kody osobiste
+    match /joinCodes/{code} {
+      allow get: if signedIn();
+      allow list, write: if isTrainer();
+    }
+    // Dane zawodnika: treningi, ciężary, gotowość, wyniki
+    match /athletes/{uid} {
+      allow read: if isTrainer() || (signedIn() && request.auth.uid == uid);
+      allow create: if signedIn() && request.auth.uid == uid
+        && exists(/databases/$(database)/documents/joinCodes/$(request.resource.data.code))
+        && request.resource.data.gid == get(/databases/$(database)/documents/joinCodes/$(request.resource.data.code)).data.gid
+        && request.resource.data.mid == get(/databases/$(database)/documents/joinCodes/$(request.resource.data.code)).data.get('mid', request.auth.uid);
+      allow update: if isTrainer() || (signedIn() && request.auth.uid == uid
+        && request.resource.data.mid == resource.data.mid && request.resource.data.gid == resource.data.gid);
+      allow delete: if isTrainer();
+    }
+  }
+}
