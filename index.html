@@ -523,13 +523,14 @@ function editG(id){const g=grp(id);pmOpen(`<div style="font-size:22px">${esc(g.n
 function saveG(id){const g=grp(id);g.name=($('egn').value||'').trim()||g.name;g.plan=$('egp').value;pmClose();render()}
 function delG(id){return ask('Usunąć drużynę? Zawodnicy zostaną w aplikacji bez drużyny.',()=>{S.groups=S.groups.filter(g=>g.id!==id);S.members.forEach(m=>{if(m.group===id)m.group=''});S.ses.forEach(s=>{if(s.gid===id)s.gid=''});teamSel='';render()})}
 function addM(){const n=($('nm').value||'').trim();if(!n){msg='Wpisz imię i nazwisko.';return render()}S.members.push({id:uid(),name:n,group:$('ng').value,plan:'',notes:'',phone:'',code:''});msg='Dodano: '+n+'.';render()}
-function openM(id){cur=id;view='member';mTab='tr';pvTest='';pgP='';pgE='';msg='';window.scrollTo(0,0);render()}
+function openM(id){cur=id;view='member';mTab='tr';mTrSel='';pvTest='';pgP='';pgE='';msg='';window.scrollTo(0,0);render()}
 function setM(k,v){const m=mem(cur);m[k]=v;render()}
 function exTrend(m,pid,name){const p=plan(pid);if(!p&&pid!==xPid(m.id))return null;const byW={};logKeys(m.id).forEach(k=>{const[,pd,,w]=k.split('|');if(pd!==pid)return;const lg=logOfK(m.id,k);if(!lg)return;const b=bestSet(lg,name);if(!b)return;const wi=p?planWeekIdx(p,w):0;if(!byW[wi]||b.e>byW[wi].b.e)byW[wi]={wi,b}});const R=Object.values(byW).sort((a,b)=>a.wi-b.wi);if(!R.length)return null;const last=R[R.length-1],prev=R.length>1?verdict(R[R.length-2].b,last.b):null,tot=R.length>2?verdict(R[0].b,last.b):null;return{R,last,prev,tot}}
 function trBadge(t){if(!t)return '<span class="mu" style="font-size:13px">brak zapisów</span>';if(!t.prev)return '<span class="mu" style="font-size:13px">punkt startowy</span>';const v=t.prev,c=VL[v[0]];return `<span class="${c[1]}" style="font-size:14px;white-space:nowrap">${c[0]}</span>${t.tot?`<div class="mu" style="font-size:12px">od T${t.R[0].wi+1}: <span class="${VL[t.tot[0]][1]}">${VL[t.tot[0]][0]}</span></div>`:''}`}
-function mTrV(m){const p=memPlan(m),cw=mon(localDay()),wi=p?planWeekIdx(p,cw):0,I=ordItems(m,p,wi,cw);
+let mTrSel='';
+function mTrV(m){const p=memPlan(m),cw=mon(localDay()),wi=p?planWeekIdx(p,cw):0,I=ordItems(m,p,wi,cw);const sel=I.find(it=>it.d.id===mTrSel)||I[0]||{d:{}};
 return `<div class="cd" style="border-top:0;padding-top:4px"><p class="mu" style="margin:0">${p?esc(p.n)+' · Tydzień '+(wi+1)+' z '+p.weeks.length+'. ':''}Strzałka przy ćwiczeniu porównuje najlepszą serię z ostatnich dwóch tygodni z zapisem.</p></div>`+
-(I.map((it,i)=>{const k=dk(it.pid,it.d.id,cw),done=isDoneK(m.id,k),lg=logOfK(m.id,k),LB=exLabels(it.d.ex.map(normEx));
+(I.length>1?`<div class="csub" style="margin:0 0 6px">${I.map(it=>`<button class="${it.d.id===sel.d.id?'on':''}" onclick="mTrSel='${it.d.id}';render()">${esc(it.d.n)}${isDoneK(m.id,dk(it.pid,it.d.id,cw))?' ✓':''}</button>`).join('')}</div>`:'')+([sel].map((it,i)=>{const k=dk(it.pid,it.d.id,cw),done=isDoneK(m.id,k),lg=logOfK(m.id,k),LB=exLabels(it.d.ex.map(normEx));
 return `<div class="cd"><div class="row" style="align-items:baseline;flex-wrap:wrap;gap:8px"><h2 style="margin:0">${esc(it.d.n)}${it.x?' <span class="tag" style="color:var(--ac);border-color:var(--ac)">indywidualny</span>':''}</h2><span class="${done?'calok':'mu'}">${done?'✓ wykonany w tym tygodniu':'jeszcze niewykonany'}</span></div>
 ${it.d.ex.map((x,j)=>{const t=exTrend(m,it.pid,x.n),e=lg?logEx(lg,x,j):null,sl=x.sets.map(setLine).filter(Boolean)[0]||'';return `<div class="pvrow" style="align-items:center"><span><b style="color:var(--ac);font-weight:500;margin-right:8px">${LB[j].lab}</b>${esc(x.n)}<div class="mu" style="font-size:13px">plan: ${sl||'—'}${t?` · ostatnio: ${t.last.b.w?String(t.last.b.w).replace('.',',')+' kg × ':''}${t.last.b.r}`:''}</div></span><span class="pvnum" style="text-align:right">${trBadge(t)}</span></div>`}).join('')||'<p class="mu">Brak ćwiczeń.</p>'}</div>`}).join('')||'<p class="mu">Brak planu i treningów indywidualnych.</p>')
 +`<details class="fold cd"><summary><span style="font-size:17px">Kolejność i treningi indywidualne</span></summary>${memTrSec(m)}</details>`}
@@ -1698,7 +1699,7 @@ $('app').innerHTML='<nav>'+N.map(n=>`<button class="${top===n[0]?'on':''}" oncli
 (function(){const h=document.querySelector('.w>h1');if(h)h.innerHTML='<img class="hlogo" src="'+LOGO+'" alt="KS Human Performance – Strength &amp; Conditioning">'})();
 render(true);beStart();
 
-const BUILD='20261120205007';
+const BUILD='20261120205630';
 (function(){if(location.protocol!=='https:'||BUILD==='__B__')return;let busy=0;const chk=()=>{if(busy||document.hidden)return;busy=1;fetch(location.pathname+'?v='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=t.match(/const BUILD='(\d{8,})'/);const a=document.activeElement;if(m&&m[1]!==BUILD&&!(a&&/INPUT|TEXTAREA|SELECT/.test(a.tagName))&&!document.querySelector('.pm,.modal,#pm'))location.reload()}).catch(()=>{}).then(()=>{busy=0})};document.addEventListener('visibilitychange',chk);window.addEventListener('focus',chk);setInterval(chk,300000);setTimeout(chk,4000)})();
 try{if('serviceWorker' in navigator&&location.protocol==='https:')navigator.serviceWorker.register('sw.js').catch(()=>{})}catch(e){}
 
