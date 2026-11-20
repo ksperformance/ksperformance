@@ -26,6 +26,11 @@ service cloud.firestore {
       allow read: if isTrainer() || (signedIn() && get(/databases/$(database)/documents/app/public).data.get('rc', []).hasAny([request.auth.uid]));
       allow write: if isTrainer();
     }
+    // Opisy i uwagi do treningów rugby – czytają zawodnicy, zapisuje trener lub trenerka rugby
+    match /app/rugbynotes {
+      allow read: if isTrainer() || isAthlete();
+      allow write: if isTrainer() || (signedIn() && get(/databases/$(database)/documents/app/public).data.get('rc', []).hasAny([request.auth.uid]));
+    }
     // Kody drużyn i kody osobiste
     match /joinCodes/{code} {
       allow get: if signedIn();
