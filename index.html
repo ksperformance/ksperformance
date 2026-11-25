@@ -954,7 +954,10 @@ return head+`<div class="hero" style="margin-top:0"><div class="g"><div><div cla
 <p class="mu" style="font-size:13px">W każdym tygodniu brana jest najlepsza seria (najwyższy szacowany 1RM wg wzoru Epleya). Progres: wyższy ciężar przy tych samych powtórzeniach, więcej powtórzeń przy tym samym ciężarze, albo wyższy ciężar przy nieco mniejszej liczbie powtórzeń (szac. 1RM spada najwyżej o 5%). Spadek: szac. 1RM niższy o ponad 2%.</p></div>`}
 let pvFs=false;
 function fsTog(on){pvFs=on;try{if(on){const e=document.documentElement;e.requestFullscreen&&e.requestFullscreen().catch(()=>{})}else if(document.fullscreenElement)document.exitFullscreen().catch(()=>{})}catch(e){}document.body.style.overflow=on?'hidden':'';render()}
-function pvTrV(m){const p=pvPlan(m),w=pvW||mon(localDay()),cw=w===mon(localDay());
+function histV(m){const cw=mon(localDay()),L=doneList(m.id).filter(x=>x.w!==cw).map(x=>Object.assign({mid:m.id},x));if(!L.length)return '';const G={};L.forEach(x=>{const p=plan(x.pid),n=p?p.n:String(x.pid).startsWith('R~')?'Rugby':String(x.pid).startsWith('X~')?'Treningi indywidualne':'Wcześniejszy plan';(G[n]=G[n]||[]).push(x)});
+return `<details class="cd" style="margin-top:22px"><summary style="cursor:pointer;font-size:18px">Poprzednie treningi (${L.length})</summary><p class="mu" style="font-size:13px;margin:8px 0 0">Wszystkie wykonane treningi, także z wcześniejszych planów. Kliknij „Zapis treningu”, aby zobaczyć swoje ciężary i uwagi.</p>${Object.entries(G).map(([n,A])=>`<details style="margin-top:12px"><summary style="cursor:pointer;color:var(--ac)">${esc(n)} (${A.length})</summary>${doneRows(A,false)}</details>`).join('')}</details>`}
+function pvTrV(m){return pvTrV0(m)+histV(m)}
+function pvTrV0(m){const p=pvPlan(m),w=pvW||mon(localDay()),cw=w===mon(localDay());
 const ban=pvAs&&!(sess&&sess.r==='c')?`<div class="msg">Podgląd planu „${esc(p?p.n:'')}” ${pvAs.mid?'u: '+esc(m.name):'u przykładowego zawodnika'}${pvAs.mid&&memPlan(m)&&p&&memPlan(m).id===p.id?'':' · plan nie jest jeszcze przypisany'}.${p&&pnSt(p)!=='ok'?`<div style="margin-top:8px"><b>${pnSt(p)==='draft'?'Wersja robocza':'Niezatwierdzone zmiany'}</b> – prawdziwi zawodnicy jeszcze tego nie widzą. <button class="s" style="color:var(--ac)" onclick="pvExit();pnPub('${p.id}')">Zatwierdź plan dla drużyny</button></div>`:''}</div>`:'';
 const wi=p&&p.days.length?planWeekIdx(p,w):0,I=ordItems(m,p&&p.days.length?p:null,wi,w);
 if(!I.length&&(!p||!p.days.length))return ban+'<div class="hero" style="margin-top:6px"><div class="big" style="font-size:34px;margin:0 0 8px">Plan w przygotowaniu</div><div class="mu">Twój plan treningowy pojawi się tutaj, gdy trenerka go przygotuje.</div></div>';
@@ -1746,7 +1749,7 @@ $('app').innerHTML='<nav>'+N.map(n=>`<button class="${top===n[0]?'on':''}" oncli
 (function(){const h=document.querySelector('.w>h1');if(h)h.innerHTML='<img class="hlogo" src="'+LOGO+'" alt="KS Human Performance – Strength &amp; Conditioning">'})();
 render(true);beStart();
 
-const BUILD='20261123234335';
+const BUILD='20261125120034';
 (function(){if(location.protocol!=='https:'||BUILD==='__B__')return;let busy=0;const chk=()=>{if(busy||document.hidden)return;busy=1;fetch(location.pathname+'?v='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=t.match(/const BUILD='(\d{8,})'/);const a=document.activeElement;if(m&&m[1]!==BUILD&&!(a&&/INPUT|TEXTAREA|SELECT/.test(a.tagName))&&!document.querySelector('.pm,.modal,#pm'))location.reload()}).catch(()=>{}).then(()=>{busy=0})};document.addEventListener('visibilitychange',chk);window.addEventListener('focus',chk);setInterval(chk,300000);setTimeout(chk,4000)})();
 try{if('serviceWorker' in navigator&&location.protocol==='https:')navigator.serviceWorker.register('sw.js').catch(()=>{})}catch(e){}
 
