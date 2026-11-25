@@ -506,6 +506,7 @@ async function sendReset(mid){const m=mem(mid);if(!m||!m.email)return;try{await 
 function logout(){pvMode=false;lgErr='';lgSub='in';lgMode='c';window.scrollTo(0,0);if(BE)BE.signOut();else render(true)}
 
 /* nawigacja */
+let navG=null;
 function go(v){if(v==='gen'&&view!=='gen'){gvMode='list';gvTeam=null;gvPlan=null;gvUndo=null}view=v;msg='';cur=null;plCur=null;if(v==='plans')plTeam=null;window.scrollTo(0,0);render()}
 function back(){msg='';pmClose();if(view==='xed'){view='member';cur=edX}else if(view==='member')view='team';else if(view==='plans'&&plCur){const p=plan(plCur);plCur=null;if(p&&plTeam===null)plTeam=plTeamOf(p)}else if(view==='plans'&&plTeam!==null)plTeam=null;else view='team';window.scrollTo(0,0);render()}
 
@@ -1741,15 +1742,16 @@ function render(skipSave){NOTES.length=0;try{ensureIds()}catch(e){console.error(
 document.body.classList.toggle('lgm',!sess);document.body.classList.toggle('pvm',!!pvMode);
 if(!sess||!role||role==='setup'||role==='join'){$('app').innerHTML=loginV();return}
 if(pvMode){$('app').innerHTML=pvShellV();return}
-const N=[['team','Zespół'],['plans','Plany treningowe'],['gen','Programowanie'],['lib','Baza ćwiczeń'],['drl','Drille'],['results','Testy'],['progress','Progres'],['ready','Readiness / zmęczenie'],['calendar','Kalendarz'],['sched','Terminarz'],['summary','Podsumowanie'],['stats','Frekwencja'],['astats','Statystyki zawodników'],['access','Dostęp']],top=view==='member'||view==='xed'?'team':view;
-$('app').innerHTML='<nav>'+N.map(n=>`<button class="${top===n[0]?'on':''}" onclick="go('${n[0]}')">${n[1]}</button>`).join('')+'<button class="s nb" style="margin-left:auto" onclick="logout()">Wyloguj</button></nav>'
+const GR=[['pl','Plany i programowanie',[['plans','Plany treningowe'],['gen','Programowanie'],['lib','Baza ćwiczeń'],['drl','Drille']]],['kl','Terminarz i kalendarz',[['sched','Terminarz'],['calendar','Kalendarz']]],['dt','Dane zespołu',[['results','Testy'],['progress','Progres'],['ready','Readiness / zmęczenie'],['stats','Frekwencja'],['astats','Statystyki zawodników']]],['us','Ustawienia',[['access','Dostęp']]]],top=view==='member'||view==='xed'?'team':view,inG=g=>g[2].some(x=>x[0]===top),open=navG!==null?navG:(GR.find(inG)||[])[0];
+$('app').innerHTML='<nav>'+[['team','Zespół'],['summary','Podsumowanie']].map(n=>`<button class="${top===n[0]?'on':''}" onclick="navG=null;go('${n[0]}')">${n[1]}</button>`).join('')+GR.map(g=>`<button class="${inG(g)?'on':''}" onclick="navG=navG==='${g[0]}'?'':'${g[0]}';render()">${g[1]} ${open===g[0]?'▴':'▾'}</button>`).join('')+'<button class="s nb" style="margin-left:auto" onclick="logout()">Wyloguj</button></nav>'
++(GR.filter(g=>g[0]===open).map(g=>`<nav style="margin-top:-6px;padding-left:4px">${g[2].map(n=>`<button class="${top===n[0]?'on':''}" style="font-size:14px" onclick="navG=null;go('${n[0]}')">${n[1]}</button>`).join('')}</nav>`).join(''))
 +((view==='member'||view==='xed'||(view==='plans'&&(plCur||plTeam!==null)))?'<button class="back" onclick="back()"><svg viewBox="0 0 24 24"><path d="M14.5 5.5L8 12l6.5 6.5"/></svg><span>Wstecz</span></button>':'')
 +(BE&&BE.demo?'<div class="msg">Tryb demonstracyjny – brak połączenia z Firebase, dane zapisują się tylko w tej przeglądarce.</div>':'')+(dbNote?`<div class="msg">${esc(dbNote)}</div>`:'')+(msg?`<div class="msg">${esc(msg)}</div>`:'')
 +({team:teamV,member:memberV,plans:plansV,gen:genV,lib:libV,drl:drlV,results:resV,ready:readyV,xed:xedV,progress:progV,calendar:calV,sched:schedV,summary:podV,stats:statV,astats:atV,access:accessV}[view]||teamV)()}
 (function(){const h=document.querySelector('.w>h1');if(h)h.innerHTML='<img class="hlogo" src="'+LOGO+'" alt="KS Human Performance – Strength &amp; Conditioning">'})();
 render(true);beStart();
 
-const BUILD='20261125120034';
+const BUILD='20261125121132';
 (function(){if(location.protocol!=='https:'||BUILD==='__B__')return;let busy=0;const chk=()=>{if(busy||document.hidden)return;busy=1;fetch(location.pathname+'?v='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=t.match(/const BUILD='(\d{8,})'/);const a=document.activeElement;if(m&&m[1]!==BUILD&&!(a&&/INPUT|TEXTAREA|SELECT/.test(a.tagName))&&!document.querySelector('.pm,.modal,#pm'))location.reload()}).catch(()=>{}).then(()=>{busy=0})};document.addEventListener('visibilitychange',chk);window.addEventListener('focus',chk);setInterval(chk,300000);setTimeout(chk,4000)})();
 try{if('serviceWorker' in navigator&&location.protocol==='https:')navigator.serviceWorker.register('sw.js').catch(()=>{})}catch(e){}
 
